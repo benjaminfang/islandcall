@@ -13,6 +13,10 @@ dataset was organised by structure like this:"dataset/genue/species/strain
 complete genome.
 
 requirement: tblastn, nucmer
+
+Two result file will generated after the finish of this utility.
+the fist: flag_gene_blast_res.
+the second: island_calling_res.
 """
 
 import argparse
@@ -463,7 +467,7 @@ def callisland(blast_res_file, res_dir, expand_len):
                 island_right = island_right + merge_len
             island_seq = subject_expanded_seq[island_left:island_right]
             # trans coordinate to int contain strain seq.
-            island_left_traned = int(s_s) - (island_left - flag_gene_position_start)
+            island_left_traned = int(s_s) - (flag_gene_position_start - island_left)
             island_right_traned = int(s_e) + (island_right - flag_gene_position_end)
 
             print('       ', '\t'.join([query, subject, s_s, s_e, island_contig,
