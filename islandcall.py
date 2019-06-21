@@ -346,13 +346,14 @@ def callisland(blast_res_file, res_dir, expand_len):
                 block = []
             if i==1:
                 block.append(line)
-        ref_seq_name, ref_seq_len, query_seq_len, alig_distribution_sorted = \
-            parse_block(block)
-        flag_gene_position = [expand_len+1, query_seq_len-expand_len]
-        data_out[ref_seq_name] = {'ref_seq_len':       ref_seq_len,
-                                  'query_seq_len':     query_seq_len,
-                                  'flag_gene_position':flag_gene_position,
-                                  'alig_distribution_sorted':alig_distribution_sorted}
+        if i==1:
+            ref_seq_name, ref_seq_len, query_seq_len, alig_distribution_sorted = \
+                parse_block(block)
+            flag_gene_position = [expand_len+1, query_seq_len-expand_len]
+            data_out[ref_seq_name] = {'ref_seq_len':       ref_seq_len,
+                                      'query_seq_len':     query_seq_len,
+                                      'flag_gene_position':flag_gene_position,
+                                      'alig_distribution_sorted':alig_distribution_sorted}
         return data_out
 
     def find_flag_left_right_match(nucmer_dt, match_block_distance):
@@ -563,6 +564,7 @@ def callisland(blast_res_file, res_dir, expand_len):
                     match_count += 1
                     if find_island:
                         print(island_info)
+    island_res_f_out.close()
     return 0
 
 
