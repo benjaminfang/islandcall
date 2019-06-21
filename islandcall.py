@@ -370,13 +370,21 @@ def callisland(blast_res_file, res_dir, expand_len):
                     have_island = 'Y'
                 else:
                     have_island = 'N'
-            elif sequence_pattren == ['ll','rl','lr','rr']:
+            elif sequence_pattren == ['ll', 'rl', 'lr', 'rr']:
                 merge_len = left_range[1] - right_range[0]
                 if merge_len > 100: merge_len = 100
                 have_island = 'Y'
-            else:
+            elif sequence_pattren == ['rl', 'll', 'lr', 'rr']:
                 have_island = 'Y'
                 merge_len = 100
+            elif sequence_pattren == ['ll', 'rl', 'rr', 'lr']:
+                have_island = 'Y'
+                merge_len = 100
+            elif sequence_pattren == ['rl', 'll', 'rr', 'lr']:
+                have_island = 'Y'
+                merge_len = 0
+            elif sequence_pattren == ['rl', 'rr', 'll', 'lr']:
+                have_island = 'N'
             # DEBUG: print(have_island, merge_len, interval_len)
             return have_island, merge_len, interval_len
 
@@ -440,6 +448,34 @@ def callisland(blast_res_file, res_dir, expand_len):
 
         return if_have_island, island_info
 
+    def print_island_info(query, suject, s_s, s_e, island_info, subject_expanded_seq, file_out):
+        for island_contig in island_info:
+            flag_gene_position_start, flag_gene_position_end, \
+                query_left_block, query_right_block, sub_leaf_block, sub_right_block, \
+                merge_len, interval_len = island_info[island_contig][0][0], \
+                island_info[island_contig][0][1], island_info[island_contig][1], \
+                island_info[island_contig][2], island_info[island_contig][3], island_info[island_contig][4], \
+                island_info[island_contig][5], island_info[island_contig][6]
+            island_left = query_left_block[1]
+            island_right = query_right_block[0]
+            if merge_len:
+                island_left = island_left - merge_len
+                island_right = island_right + merge_len
+            island_seq = subject_expanded_seq[island_left:island_right]
+            # trans coordinate to int contain strain seq.
+            island_left_traned = int(s_s) - (island_left - flag_gene_position_start)
+            island_right_traned = int(s_e) + (island_right - flag_gene_position_end)
+
+            print('       ', '\t'.join([query, subject, s_s, s_e, island_contig,
+                str(island_left_traned),str(island_right_traned),
+                ':'.join([str(query_left_block[0]), str(query_left_block[1])]),
+                ':'.join([str(query_right_block[0]), str(query_right_block[1])]),
+                ':'.join([str(sub_leaf_block[0]), str(sub_leaf_block[1])]),
+                ':'.join([str(sub_right_block[0]), str(sub_right_block[1])]),
+                 str(merge_len), str(interval_len), island_seq]), file=file_out)
+
+        return 0
+
     print('\n++++++++++islandcalling+++++++++')
     blast_dt = struc_blast_res(blast_res_file)
     # DEBUG: print(blast_dt)
@@ -462,47 +498,62 @@ def callisland(blast_res_file, res_dir, expand_len):
     print(debug_blast_dt)
     # DEBUG: <----------------
 
-    out_file = os.path.join(res_dir, 'nucmer_res')
+    nucmer_out_file = os.path.join(res_dir, 'nucmer_res')
     flag_segment_file = os.path.join(res_dir, 'flag_gene_segment.fasta')
+    island_res_file=os.path.join(res_dir, 'islandcall_calling_res')
+    island_res_f_out = open(island_res_file, 'w')
     for genus in blast_dt_splited['Y']:
         print('>',genus)
+        print('GENUS', genus, file=island_res_f_out)
         genus_N_strain=get_genus_N_strain(genus, blast_dt_splited)
         for species in blast_dt_splited['Y'][genus]:
             print('    >>',species)
+            print('    SPECIES', species, file=island_res_f_out)
             species_N_strain = get_species_N_strain(genus, species, blast_dt_splited)
             genus_N_strain = set(genus_N_strain) - set(species_N_strain)
             # DEBUG: print('genus_N_strain', genus_N_strain)
             for strain in blast_dt_splited['Y'][genus][species]:
                 print('        >>>',strain)
+                print('        STRAIN', strain, file=island_res_f_out)
                 match_count = 1
-                print('        match:',match_count)
+                print('        match:', match_count)
+                print('        MATCH', match_count, file=island_res_f_out)
                 for match in blast_dt_splited['Y'][genus][species][strain]:
                     find_island = None
                     island_info = None
+                    match = match.split()
+                    query, subject, s_s, s_e, subject_expanded_seq = match[0], match[1], \
+                        match[8], match[9], match[-1]
                     f_out_flag = open(flag_segment_file, 'w')
                     head = ' '.join(['>', os.path.basename(strain), str(match_count)])
                     print(head, file=f_out_flag)
-                    print(match.split()[-1], file=f_out_flag)
+                    print(subject_expanded_seq, file=f_out_flag)
                     f_out_flag.close()
                     query_file = flag_segment_file
                     for N_strain in species_N_strain:
                         ref_file = os.path.join(N_strain, os.path.basename(N_strain) + '.fasta')
-                        numcer_res = run_nucmer(ref_file, query_file, out_file)
+                        numcer_res = run_nucmer(ref_file, query_file, nucmer_out_file)
                         if_have_island, island_info = parse_nucmer_res(numcer_res, ref_file, \
                             query_file, expand_len)
                         if if_have_island=='Y':
                             print('yaohho, find island in species blank strain...')
+                            print('        BLANK_STARIN', ref_file, file=island_res_f_out)
+                            print_island_info(query, subject, s_s, s_e, island_info,
+                                subject_expanded_seq, island_res_f_out)
                             find_island = True
                             break
                     if not find_island:
                         print('contiune, looking in genus blank strain...')
                         for N_strain in genus_N_strain:
                             ref_file = os.path.join(N_strain, os.path.basename(N_strain) + '.fasta')
-                            nucmer_res = run_nucmer(ref_file, query_file, out_file)
+                            nucmer_res = run_nucmer(ref_file, query_file, nucmer_out_file)
                             if_have_island, island_info = parse_nucmer_res(nucmer_res, \
                                 ref_file, query_file, expand_len)
                             if if_have_island=='Y':
                                 print('yaohho, find island in genus blank strain...')
+                                print('        BLANK_STARIN', ref_file, file=island_res_f_out)
+                                print_island_info(query, subject, s_s, s_e, island_info,
+                                    subject_expanded_seq, island_res_f_out)
                                 find_island = True
                                 break
                     match_count += 1
