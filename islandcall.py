@@ -369,6 +369,8 @@ def callisland(blast_res_file, res_dir, expand_len):
             sequence_pattren.sort(key=lambda x:x[0])
             sequence_pattren = [ele[1] for ele in sequence_pattren]
             print('        suject sequence_pattren:',sequence_pattren)
+            # DEBUG: Here bugs need to fix. because different suject block oritation
+            # DEBUG: cis, cis; cis, trans; trans, cis; trans, trans.
             if sequence_pattren==['ll','lr','rl','rr']:
                 interval_len = right_range[0] - left_range[1]
                 if interval_len < match_block_distance:
