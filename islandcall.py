@@ -362,8 +362,12 @@ def callisland(blast_res_file, res_dir, expand_len):
             merge_len = None
             interval_len = None
             have_island = None
+            left_block_oritation = left_block[3]
+            right_block_oritaion = right_block[3]
             left_range = left_block[1]
+            left_range.sort()
             right_range = right_block[1]
+            right_range.sort()
             sequence_pattren = [(left_range[0],'ll'),(left_range[1],'lr'), \
                 (right_range[0],'rl'),(right_range[1],'rr')]
             sequence_pattren.sort(key=lambda x:x[0])
@@ -371,27 +375,35 @@ def callisland(blast_res_file, res_dir, expand_len):
             print('        suject sequence_pattren:',sequence_pattren)
             # DEBUG: Here bugs need to fix. because different suject block oritation
             # DEBUG: cis, cis; cis, trans; trans, cis; trans, trans.
-            if sequence_pattren==['ll','lr','rl','rr']:
-                interval_len = right_range[0] - left_range[1]
-                if interval_len < match_block_distance:
-                    have_island = 'Y'
-                else:
-                    have_island = 'N'
-            elif sequence_pattren == ['ll', 'rl', 'lr', 'rr']:
-                merge_len = left_range[1] - right_range[0]
-                if merge_len > 100: merge_len = 100
-                have_island = 'Y'
-            elif sequence_pattren == ['rl', 'll', 'lr', 'rr']:
-                have_island = 'Y'
-                merge_len = 100
-            elif sequence_pattren == ['ll', 'rl', 'rr', 'lr']:
-                have_island = 'Y'
-                merge_len = 100
-            elif sequence_pattren == ['rl', 'll', 'rr', 'lr']:
-                have_island = 'Y'
-                merge_len = 0
-            elif sequence_pattren == ['rl', 'rr', 'll', 'lr']:
+            if left_block_oritation == 'cis' and right_block_oritaion == 'trans':
                 have_island = 'N'
+            elif left_block_oritation == 'trans' and right_block_oritaion == 'cis':
+                have_island = 'N'
+            else:
+                if sequence_pattren==['ll', 'lr', 'rl', 'rr']:
+                    interval_len = right_range[0] - left_range[1]
+                    if interval_len < match_block_distance:
+                        have_island = 'Y'
+                    else:
+                        have_island = 'N'
+                elif sequence_pattren == ['ll', 'rl', 'lr', 'rr']:
+                    merge_len = left_range[1] - right_range[0]
+                    if merge_len > 100: merge_len = 100
+                    have_island = 'Y'
+                elif sequence_pattren == ['rl', 'll', 'lr', 'rr']:
+                    if (left_range[1] - right_range[1]) < 100 or (right_range[0] - left_range[0]) < 100:
+                        have_island = 'Y'
+                    else:
+                        have_island = 'N'
+                elif sequence_pattren == ['ll', 'rl', 'rr', 'lr']:
+                    if (right_range[1] - left_range[1]) < 100 or (left_range[0] - right_range[0]) < 100:
+                        have_island = 'Y'
+                    else:
+                        have_island = 'N'
+                elif sequence_pattren == ['rl', 'll', 'rr', 'lr']:
+                    have_island = 'N'
+                elif sequence_pattren == ['rl', 'rr', 'll', 'lr']:
+                    have_island = 'N'
             # DEBUG: print(have_island, merge_len, interval_len)
             return have_island, merge_len, interval_len
 
