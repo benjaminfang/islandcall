@@ -90,7 +90,7 @@ def blast_flag_gene(flag_seq_file, flag_seq_type, dataset, blast_coverage_cutoff
         outfmt='-outfmt 7'
         out='-out '+blast_tmp_f
         num_threads='-num_threads 16'
-        cmd=' '.join([cmd_name,query,db,outfmt,out,num_threads])
+        cmd=' '.join([cmd_name, query, db, outfmt, out, num_threads])
         os.system(cmd)
         return 0
 
@@ -365,14 +365,16 @@ def callisland(blast_res_file, res_dir, expand_len):
             left_block_oritation = left_block[3]
             right_block_oritaion = right_block[3]
             left_range = left_block[1]
+            left_range = list(left_range)
             left_range.sort()
             right_range = right_block[1]
+            right_range = list(right_range)
             right_range.sort()
             sequence_pattren = [(left_range[0],'ll'),(left_range[1],'lr'), \
                 (right_range[0],'rl'),(right_range[1],'rr')]
             sequence_pattren.sort(key=lambda x:x[0])
             sequence_pattren = [ele[1] for ele in sequence_pattren]
-            print('        suject sequence_pattren:',sequence_pattren)
+            print('        suject sequence_pattren:', sequence_pattren)
             # DEBUG: Here bugs need to fix. because different suject block oritation
             # DEBUG: cis, cis; cis, trans; trans, cis; trans, trans.
             if left_block_oritation == 'cis' and right_block_oritaion == 'trans':
@@ -467,7 +469,8 @@ def callisland(blast_res_file, res_dir, expand_len):
 
         return if_have_island, island_info
 
-    def print_island_info(query, suject, s_s, s_e, island_info, subject_expanded_seq, file_out):
+    def print_island_info(query, suject, coverage, identity, s_s, s_e,
+        expand_seq_location, oritation, subject_expanded_seq, island_info, file_out):
         for island_contig in island_info:
             flag_gene_position_start, flag_gene_position_end, \
                 query_left_block, query_right_block, sub_leaf_block, sub_right_block, \
@@ -482,22 +485,26 @@ def callisland(blast_res_file, res_dir, expand_len):
                 island_right = island_right + merge_len
             island_seq = subject_expanded_seq[island_left:island_right]
             # trans coordinate to int contain strain seq.
-            island_left_traned = int(s_s) - (flag_gene_position_start - island_left)
-            island_right_traned = int(s_e) + (island_right - flag_gene_position_end)
-
-            print('       ', '\t'.join([query, subject, s_s, s_e, island_contig,
-                str(island_left_traned),str(island_right_traned),
+            if oritation == '+':
+                island_left_traned = int(s_s) - (flag_gene_position_start - island_left)
+                island_right_traned = int(s_e) + (island_right - flag_gene_position_end)
+            elif oritation == '-':
+                island_left_traned = int(s_s) + (flag_gene_position_start - island_left)
+                island_right_traned = int(s_e) - (island_right - flag_gene_position_end)
+            print('       ', '\t'.join([query, subject, coverage, identity, s_s, s_e,
+                expand_seq_location, oritation, island_contig,
                 ':'.join([str(query_left_block[0]), str(query_left_block[1])]),
                 ':'.join([str(query_right_block[0]), str(query_right_block[1])]),
                 ':'.join([str(sub_leaf_block[0]), str(sub_leaf_block[1])]),
                 ':'.join([str(sub_right_block[0]), str(sub_right_block[1])]),
-                 str(merge_len), str(interval_len), island_seq]), file=file_out)
+                str(merge_len), str(interval_len), str(island_left_traned),
+                str(island_right_traned), island_seq]), file=file_out)
 
         return 0
 
     print('\n++++++++++islandcalling+++++++++')
     blast_dt = struc_blast_res(blast_res_file)
-    # DEBUG: print(blast_dt)
+    # DEBUG: print(blast_dt)parse_block
     blast_dt = filter_empty_genus(blast_dt)
     blast_dt_splited = split_strain_have_flag(blast_dt)
 
@@ -541,8 +548,10 @@ def callisland(blast_res_file, res_dir, expand_len):
                     find_island = None
                     island_info = None
                     match = match.split()
-                    query, subject, s_s, s_e, subject_expanded_seq = match[0], match[1], \
-                        match[8], match[9], match[-1]
+                    query, subject, coverage, identity, s_s, s_e, expand_seq_location, \
+                        oritation, subject_expanded_seq \
+                        = match[0], match[1], match[2], match[3], match[8], match[9], \
+                        match[11], match[12], match[-1]
                     f_out_flag = open(flag_segment_file, 'w')
                     head = ' '.join(['>', os.path.basename(strain), str(match_count)])
                     print(head, file=f_out_flag)
@@ -557,8 +566,9 @@ def callisland(blast_res_file, res_dir, expand_len):
                         if if_have_island=='Y':
                             print('yaohho, find island in species blank strain...')
                             print('        BLANK_STARIN', ref_file, file=island_res_f_out)
-                            print_island_info(query, subject, s_s, s_e, island_info,
-                                subject_expanded_seq, island_res_f_out)
+                            print_island_info(query, subject, coverage, identity, s_s, s_e,
+                                expand_seq_location, oritation, subject_expanded_seq,
+                                island_info, island_res_f_out)
                             find_island = True
                             break
                     if not find_island:
@@ -571,8 +581,9 @@ def callisland(blast_res_file, res_dir, expand_len):
                             if if_have_island=='Y':
                                 print('yaohho, find island in genus blank strain...')
                                 print('        BLANK_STARIN', ref_file, file=island_res_f_out)
-                                print_island_info(query, subject, s_s, s_e, island_info,
-                                    subject_expanded_seq, island_res_f_out)
+                                print_island_info(query, subject, coverage, identity, s_s, s_e,
+                                    expand_seq_location, oritation, subject_expanded_seq, island_info,
+                                    island_res_f_out)
                                 find_island = True
                                 break
                     match_count += 1
