@@ -49,5 +49,5 @@ GENUS -genus name-
         STRAIN -strain name with path-
         MATCH -match number-
         BLANK_STRAIN -blank stain name with path which expanded sequence compared with-
-        query(flag gene)    subject  coverage    identity    subject_start  subject_end expand_seq_location oritation    blank_strain_subject_contig_id    flag_expanded_gene_query_left_match_block   flag_expanded_gene_query_right_match_block  blank_subject_left_match_block    blank_subject_right_match_block   merge_len   interval_len   island_start(by STRAIN coordinate with merge length)    island_end(by STRAIN coordinate with merge length)  island_sequence(with merge_len added)
+        query(flag gene)    subject  coverage    identity    subject_start  subject_end expand_seq_location oritation    blank_strain_subject_contig_id    flag_expanded_gene_query_left_match_block    coverage    identity    sub_s   sub_e   expand_seq_position sub_blank   query_left_block    query_right_block   sub_left_block  sub_right_block merge_len   interval_len   island_start(by STRAIN coordinate with merge length)    island_end(by STRAIN coordinate with merge length)  island_sequence(with merge_len added)
 ```

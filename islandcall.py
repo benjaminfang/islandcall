@@ -441,7 +441,7 @@ def callisland(blast_res_file, res_dir, expand_len):
             else:
                 right_block = None
             if left_block and right_block:
-                print('       left and right block:',left_block,right_block)
+                print('        left and right block:',left_block,right_block)
                 have_island, merge_len, interval_len = judge_island(left_block, right_block)
                 if have_island == 'Y':
                     data_out[ref_contig] = [nucmer_dt[ref_contig]['flag_gene_position'], \
@@ -483,7 +483,7 @@ def callisland(blast_res_file, res_dir, expand_len):
             if merge_len:
                 island_left = island_left - merge_len
                 island_right = island_right + merge_len
-            island_seq = subject_expanded_seq[island_left:island_right]
+            island_seq = subject_expanded_seq[island_left-1:island_right]
             # trans coordinate to int contain strain seq.
             if oritation == '+':
                 island_left_traned = int(s_s) - (flag_gene_position_start - island_left)
@@ -565,7 +565,7 @@ def callisland(blast_res_file, res_dir, expand_len):
                             query_file, expand_len)
                         if if_have_island=='Y':
                             print('yaohho, find island in species blank strain...')
-                            print('        BLANK_STARIN', ref_file, file=island_res_f_out)
+                            print('        BLANK_STRAIN', ref_file, file=island_res_f_out)
                             print_island_info(query, subject, coverage, identity, s_s, s_e,
                                 expand_seq_location, oritation, subject_expanded_seq,
                                 island_info, island_res_f_out)
