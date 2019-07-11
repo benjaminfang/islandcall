@@ -1,7 +1,7 @@
 # islandcall
 
 ## Introduction
-Islandcall is a utility to find genome islands(GIs) whitin bacteria genome. It search GIs which contain a gene(flag gene) by coparison approach.
+Islandcall is a utility to find genome islands(GIs) whitin bacteria genome. It search GIs which contain a gene(flag gene) by comparison approach.
 ## Install
 ### Requirements
 * NCBI blast
