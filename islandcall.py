@@ -374,8 +374,8 @@ def callisland(blast_res_file, res_dir, expand_len):
                 (right_range[0],'rl'),(right_range[1],'rr')]
             sequence_pattren.sort(key=lambda x:x[0])
             sequence_pattren = [ele[1] for ele in sequence_pattren]
-            print('        suject sequence_pattren:', sequence_pattren)
-            # DEBUG: Here bugs need to fix. because different suject block oritation
+            print('        subject sequence_pattren:', sequence_pattren)
+            # DEBUG: Here bugs need to fix. because different subject block oritation
             # DEBUG: cis, cis; cis, trans; trans, cis; trans, trans.
             if left_block_oritation == 'cis' and right_block_oritaion == 'trans':
                 have_island = 'N'
@@ -469,7 +469,7 @@ def callisland(blast_res_file, res_dir, expand_len):
 
         return if_have_island, island_info
 
-    def print_island_info(query, suject, coverage, identity, s_s, s_e,
+    def print_island_info(query, subject, coverage, identity, s_s, s_e,
         expand_seq_location, oritation, subject_expanded_seq, island_info, file_out):
         for island_contig in island_info:
             flag_gene_position_start, flag_gene_position_end, \
